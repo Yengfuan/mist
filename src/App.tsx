@@ -4,14 +4,16 @@ import './App.css'
 import arrow from './assets/arrow.png'
 import lynxLogo from './assets/lynx-logo.png'
 import reactLynxLogo from './assets/react-logo.png'
+import SubmitButton from './Button.js'
 
 export function App(props: {
   onRender?: () => void
 }) {
   const [alterLogo, setAlterLogo] = useState(false)
+  const [inputContent, setInputContent] = useState('');
 
   useEffect(() => {
-    console.info('Hello, ReactLynx')
+    console.info('Hello, Mist')
   }, [])
   props.onRender?.()
 
@@ -30,26 +32,51 @@ export function App(props: {
               ? <image src={reactLynxLogo} className='Logo--react' />
               : <image src={lynxLogo} className='Logo--lynx' />}
           </view>
-          <text className='Title'>React</text>
+          <text className='Title'>MIST</text>
           <text className='Subtitle'>on Lynx</text>
         </view>
-        <view className='Content'>
-          <image src={arrow} className='Arrow' />
-          <text className='Description'>Tap the logo and have fun!</text>
-          <text className='Hint'>
-            Edit<text
+        <view className="input-wrapper" 
               style={{
-                fontStyle: 'italic',
-                color: 'rgba(255, 255, 255, 0.85)',
-              }}
-            >
-              {' src/App.tsx '}
-            </text>
-            to see updates!
-          </text>
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              width: "100%",
+              marginBottom: "20px",
+              }}>
+        <input
+            style={{
+                flex: 1, // Takes up remaining space
+                color: "blue",
+                fontSize: "16px",
+                height: "40px",
+                borderColor: "gray",
+                borderWidth: "1px",
+                borderRadius: "5px",
+                padding: "10px",
+                marginRight: "10px", // space between input and button
+            }}
+            placeholder="Type to begin..."
+            bindinput={(res: any) => {
+              setInputContent(res.detail.value);
+            }} />
+            <view
+            style={{
+            height: "40px",
+            padding: "0 16px",
+            backgroundColor: '#ffffff',
+            color: "white",
+            borderRadius: "5px",
+            fontSize: "16px",
+            lineHeight: "40px",
+            textAlign: "center",
+          }}>
+            <SubmitButton />
+          </view>
+            
         </view>
         <view style={{ flex: 1 }} />
       </view>
     </view>
   )
 }
+
