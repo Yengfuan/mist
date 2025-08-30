@@ -75,7 +75,7 @@ text {
 }
 
 .circleAfter {
-  animation-delay: 0.5s; /* 第二个圆圈延迟1秒 */
+  animation-delay: 0.5s; 
 }
 
 .picture-wrapper {
