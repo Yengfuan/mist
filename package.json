@@ -9,8 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@lynx-js/react": "^0.112.4"
-    
+    "@lynx-js/react": "^0.112.4",
+    "openai": "^5.16.0"
   },
   "devDependencies": {
     "@lynx-js/preact-devtools": "^5.0.1-6664329",

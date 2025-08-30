@@ -146,7 +146,7 @@ export function App(props: {
               </view>
             </view>
             <view style={{ backgroundColor: '#f6f7f9', padding: '10px', borderRadius: '6px' }}>
-              <text style={{ fontSize: '12px', color: '#333' }}>{censoredPreview}</text>
+              <text style={{ fontSize: '12px', color: '#333' }}>{`Censored text: ${censoredPreview}`}</text>
             </view>
           </view>
         )}
@@ -154,11 +154,10 @@ export function App(props: {
           <text style={{ fontSize: '12px', color: '#888' }}>Sending…</text>
         )}
         {!!responseText && (
-          <view style={{ width: '100%', marginTop: '12px', backgroundColor: '#fff', borderRadius: '6px', padding: '12px' }}>
-            <text style={{ fontSize: '14px' }}>{responseText}</text>
+          <view style={{ width: '100%', marginTop: '12px', marginBottom: '20px', backgroundColor: '#fff', borderRadius: '6px', padding: '12px', border: '1px solid #e5e7eb' }}>
+            <text style={{ fontSize: '14px', color: '#333' }}>{responseText}</text>
           </view>
         )}
-        <view style={{ flex: 1 }} />
       </view>
     </view>
   )
