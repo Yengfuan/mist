@@ -3,7 +3,11 @@ export type SendMode = 'censored' | 'full';
 export async function sendChat(prompt: string, mode: SendMode): Promise<{ output: string }>{
   try {
     const baseURL = "https://api.aimlapi.com/v1";
-    const apiKey = "e0aa1b6e51f145c3aaa8a8388adcc6e7"; // Your AIML API Key
+    const apiKey = process.env.AIML_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('AI API key not found. Please set VITE_AI_API_KEY in your environment.');
+    }
     
     const systemPrompt = "You are a helpful AI assistant named Mist. Be descriptive and helpful in your responses.";
     const userPrompt = prompt;

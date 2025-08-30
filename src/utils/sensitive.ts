@@ -1,5 +1,5 @@
 export type SensitiveFinding = {
-  kind: 'email' | 'phone' | 'credit_card' | 'ssn' | 'api_key' | 'ip' | 'ipv6' | 'address_like' | 'password_like' | 'ner_person' | 'ner_org' | 'ner_loc' | 'ner_misc';
+  kind: 'email' | 'phone' | 'credit_card' | 'ssn' | 'api_key' | 'ip' | 'ipv6' | 'address_like' | 'password_like' | 'person' | 'dob';
   start: number;
   end: number;
   match: string;
@@ -64,35 +64,76 @@ export function censorText(text: string, findings: SensitiveFinding[], strategy:
 
 export async function detectSensitiveML(text: string): Promise<SensitiveFinding[]> {
   try {
-    const model = 'dslim/bert-base-NER';
-    const token = (import.meta as any).env?.VITE_HF_TOKEN;
-    const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    // Response can be nested arrays depending on pipeline aggregation.
-    const flat = Array.isArray(data) ? (Array.isArray(data[0]) ? data[0] : data) : [];
+    const model = 'iiiorg/piiranha-v1-detect-personal-information';
+    const token = process.env.HF_API_TOKEN;
+
+    if (!token) {
+      console.warn('No Hugging Face API token found. Set VITE_HF_API_TOKEN in your environment.');
+      return [];
+    }
+
+    const response = await fetch(
+      `https://router.huggingface.co/hf-inference/models/${model}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ inputs: text })
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Piiranha API failed:', response.status, await response.text());
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data)) {
+      console.warn('Unexpected format:', data);
+      return [];
+    }
+
+    const PII_LABEL_MAP: Record<string, SensitiveFinding['kind']> = {
+      'EMAIL': 'email',
+      'TELEPHONENUM': 'phone',
+      'CREDITCARDNUMBER': 'credit_card',
+      'SOCIALNUM': 'ssn',
+      'TAXNUM': 'ssn',
+      'PASSWORD': 'password_like',
+      'USERNAME': 'api_key',
+      'ACCOUNTNUM': 'api_key',
+      'IDCARDNUM': 'ssn',
+      'DRIVERLICENSENUM': 'ssn',
+      'GIVENNAME': 'person',
+      'SURNAME': 'person',
+      'BUILDINGNUM': 'address_like',
+      'STREET': 'address_like',
+      'CITY': 'address_like',
+      'ZIPCODE': 'address_like',
+      'DATEOFBIRTH': 'dob'
+    };
+
     const mapped: SensitiveFinding[] = [];
-    for (const item of flat as any[]) {
-      const label = String(item.entity_group || item.entity || '').toUpperCase();
+
+    for (const item of data) {
+      const label = item.entity_group || item.entity;
+      const kind = PII_LABEL_MAP[label] || 'person'; // fallback
+
       const start = item.start ?? 0;
       const end = item.end ?? 0;
-      const match = text.slice(start, end);
-      let kind: SensitiveFinding['kind'] | null = null;
-      if (label === 'PER' || label === 'PERSON') kind = 'ner_person';
-      else if (label === 'ORG') kind = 'ner_org';
-      else if (label === 'LOC') kind = 'ner_loc';
-      else if (label === 'MISC') kind = 'ner_misc';
-      if (kind && match) mapped.push({ kind, start, end, match });
+      const match = (start && end) ? text.slice(start, end) : (item.word || '');
+
+      if (label && label !== 'O' && match) {
+        mapped.push({ kind, start, end, match });
+      }
     }
+
     return mergeFindings(mapped);
-  } catch {
+  } catch (err) {
+    console.error('Piiranha ML detection failed:', err);
     return [];
   }
 }
